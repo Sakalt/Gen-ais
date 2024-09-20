@@ -23,7 +23,7 @@
         const net = new brain.recurrent.LSTM();
 
         // JSONデータの読み込み
-        fetch('data.json')
+        fetch('data/X.json')
             .then(response => response.json())
             .then(data => {
                 trainingData = data.conversations;
