@@ -1,0 +1,24 @@
+{
+    "conversations": [
+        {
+            "input": "こんにちは",
+            "relatedWords": ["やあ", "元気", "こんにちは"]
+        },
+        {
+            "input": "お元気ですか？",
+            "relatedWords": ["調子はどう", "お元気", "元気ですか"]
+        },
+        {
+            "input": "今日はいい天気ですね",
+            "relatedWords": ["天気", "晴れ", "外"]
+        },
+        {
+            "input": "水素",
+            "relatedWords": ["元素", "水", "原子"]
+        },
+        {
+            "input": "さようなら",
+            "relatedWords": ["またね", "ばいばい"]
+        }
+    ]
+}
