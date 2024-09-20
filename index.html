@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ハイドロAI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/1.6.1/brain.min.js"></script>
+</head>
+<body>
+    <h1>ハイドロAI</h1>
+    <textarea id="input" placeholder="メッセージを入力"></textarea>
+    <button id="run">送信</button>
+
+    <h2>カスタムデータの追加</h2>
+    <textarea id="customInput" placeholder="カスタムデータを入力"></textarea>
+    <button id="addCustom">カスタムデータを追加</button>
+
+    <h2>出力:</h2>
+    <pre id="output"></pre>
+
+    <script>
+        let trainingData = [];
+        const net = new brain.recurrent.LSTM();
+
+        // JSONデータの読み込み
+        fetch('data.json')
+            .then(response => response.json())
+            .then(data => {
+                trainingData = data.conversations.map(item => item.input);
+                initializeModel(data.conversations);
+            });
+
+        const initializeModel = (conversations) => {
+            net.train(conversations.map(item => ({
+                input: item.input,
+                output: item.input
+            })), {
+                iterations: 2000,
+                log: true,
+                logPeriod: 100,
+            });
+        };
+
+        // 応答生成
+        const generateResponse = (input) => {
+            return net.run(input);
+        };
+
+        // ボタンクリック時の処理
+        document.getElementById('run').addEventListener('click', () => {
+            const userInput = document.getElementById('input').value;
+            const response = generateResponse(userInput);
+            document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
+        });
+
+        // カスタムデータを追加
+        document.getElementById('addCustom').addEventListener('click', () => {
+            const customInput = document.getElementById('customInput').value;
+            if (customInput) {
+                // カスタムデータをモデルに追加
+                net.train([{ input: customInput, output: customInput }], {
+                    iterations: 200,
+                    log: false,
+                });
+                alert('カスタムデータを追加しました！');
+                document.getElementById('customInput').value = '';
+            }
+        });
+    </script>
+</body>
+</html>
