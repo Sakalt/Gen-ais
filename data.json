@@ -19,6 +19,14 @@
         {
             "input": "さようなら",
             "relatedWords": ["またね", "ばいばい"]
+        },
+        {
+            "input": "すいません",
+            "relatedWords": ["謝罪", "謝る", "反省"]
+        }
+        {
+            "input": "あなたはだれですか？",
+            "relatedWords": ["ハイドロaiです", "ハイドロai", "ai"]
         }
     ]
 }
