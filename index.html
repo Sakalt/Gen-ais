@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ハイドロAI</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/1.6.1/brain.min.js"></script>
+    <style>
+        #error { color: red; }
+    </style>
 </head>
 <body>
     <h1>ハイドロAI</h1>
@@ -17,6 +20,8 @@
 
     <h2>出力:</h2>
     <pre id="output"></pre>
+    
+    <div id="error"></div>
 
     <script>
         let trainingData = [];
@@ -29,7 +34,9 @@
                 trainingData = data;
                 initializeModel(trainingData);
             })
-            .catch(error => console.error('JSONデータの読み込みエラー:', error));
+            .catch(err => {
+                document.getElementById('error').textContent = `エラー: ${err.message}`;
+            });
 
         const initializeModel = (conversations) => {
             net.train(conversations.map(item => ({
@@ -44,25 +51,27 @@
 
         // 応答生成
         const generateResponse = async (input) => {
-            if (input.includes("東京の天気は？")) {
-                try {
+            try {
+                if (input.includes("東京の天気は？")) {
                     const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
-                    if (!response.ok) throw new Error('天気情報の取得に失敗しました。');
                     return `東京の天気: ${await response.text()}`;
-                } catch (error) {
-                    return `エラー: ${error.message}`;
                 }
-            }
 
-            const response = net.run(input);
-            return response || "申し訳ありませんが、その質問にはお答えできません。";
+                const response = net.run(input);
+                return response || "申し訳ありませんが、その質問にはお答えできません。";
+            } catch (error) {
+                document.getElementById('error').textContent = `エラー: ${error.message}`;
+                return null;
+            }
         };
 
         // ボタンクリック時の処理
         document.getElementById('run').addEventListener('click', async () => {
             const userInput = document.getElementById('input').value;
             const response = await generateResponse(userInput);
-            document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
+            if (response) {
+                document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
+            }
         });
 
         // カスタムデータを追加
