@@ -25,20 +25,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            let trainingData = [];
             const net = new brain.recurrent.LSTM();
 
             // JSONデータの読み込み
             fetch('data.json')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTPエラー: ${response.status}`);
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    trainingData = data.conversations;
-                    initializeModel(trainingData);
+                    initializeModel(data.conversations);
                 })
                 .catch(err => {
                     alert(`エラー: ${err.message}`);
@@ -48,7 +41,6 @@
                 net.train(conversations.map(item => ({
                     input: item.input.join(' '), // 配列の入力を結合
                     output: item.output,
-                    tags: item.tags
                 })), {
                     iterations: 2000,
                     log: true,
@@ -58,29 +50,34 @@
 
             // 応答生成
             const generateResponse = async (input) => {
-                if (input.includes("東京の天気は？") || input.includes("東京の天気を教えて")) {
-                    try {
-                        const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
-                        return `東京の天気: ${await response.text()}`;
-                    } catch (error) {
-                        return "天気情報の取得に失敗しました。";
-                    }
+                if (input.includes("天気") || input.includes("東京の天気")) {
+                    return await fetchWeather();
                 }
-
                 const response = net.run(input);
                 return response || "申し訳ありませんが、その質問にはお答えできません。";
             };
 
+            const fetchWeather = async () => {
+                try {
+                    const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
+                    const weather = await response.text();
+                    return `東京の天気: ${weather}`;
+                } catch (error) {
+                    return "天気情報の取得に失敗しました。";
+                }
+            };
+
             // ボタンクリック時の処理
-            document.getElementById('run').addEventListener('click', async () => {
+            document.getElementById('run').addEventListener('click', () => {
                 const userInput = document.getElementById('input').value.trim();
                 if (userInput === "") {
                     alert("メッセージを入力してください。");
                     return;
                 }
 
-                const response = await generateResponse(userInput);
-                document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
+                generateResponse(userInput).then(response => {
+                    document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
+                });
             });
 
             // カスタムデータを追加
