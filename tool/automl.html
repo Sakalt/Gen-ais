@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain.js 日本語会話AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label, input, button, textarea {
+            margin: 10px 0;
+            display: block;
+            width: 100%;
+            max-width: 400px;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Brain.js 日本語会話AI</h1>
+
+    <h2>トレーニングデータ</h2>
+    <p>サンプルとして、日本語の日常会話や質問への応答データを使ってモデルをトレーニングします。</p>
+    <form id="training-form">
+        <label for="input">トレーニング用の入力データ (例: 今日はどんな天気？):</label>
+        <input type="text" id="input" placeholder="例: 今日はどんな天気？">
+
+        <label for="output">期待する出力データ (例: 晴れです):</label>
+        <input type="text" id="output" placeholder="例: 晴れです">
+
+        <button type="submit">トレーニング</button>
+    </form>
+
+    <h2>予測をテストする</h2>
+    <label for="test-input">テスト用入力データ:</label>
+    <input type="text" id="test-input" placeholder="例: こんにちは">
+    <button id="test-btn">予測する</button>
+
+    <h3>結果:</h3>
+    <textarea id="result" readonly></textarea>
+    <button id="copy-btn">コピー</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0/brain.min.js"></script>
+    <script>
+        // Brain.js ニューラルネットワークの初期化
+        const net = new brain.NeuralNetwork();
+
+        // 複雑なサンプルデータ（日本語会話用）
+        const trainingData = [
+            { input: "こんにちは", output: "こんにちは！" },
+            { input: "おはよう", output: "おはようございます！" },
+            { input: "今日はどんな天気？", output: "晴れです" },
+            { input: "元気ですか？", output: "元気です！" },
+            { input: "お名前は何ですか？", output: "私はAIです" },
+            { input: "何ができるの？", output: "いろいろな質問に答えることができます" },
+            { input: "今何時ですか？", output: "現在の時刻をお知らせします" },
+            { input: "ありがとう", output: "どういたしまして！" },
+            { input: "さようなら", output: "さようなら、またね！" },
+            { input: "明日の天気は？", output: "明日は雨の予報です" }
+        ];
+
+        // トレーニングデータをネットワークに追加
+        const formattedData = trainingData.map(item => ({
+            input: convertToBinary(item.input),
+            output: convertToBinary(item.output)
+        }));
+        net.train(formattedData);
+
+        // フォームのトレーニングデータを追加
+        document.getElementById('training-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const input = document.getElementById('input').value;
+            const output = document.getElementById('output').value;
+
+            // ネットワークにトレーニングデータを追加
+            net.train([
+                { input: convertToBinary(input), output: convertToBinary(output) }
+            ]);
+
+            alert('モデルをトレーニングしました！');
+        });
+
+        // 予測ボタンがクリックされたときの処理
+        document.getElementById('test-btn').addEventListener('click', function() {
+            const testInput = document.getElementById('test-input').value;
+            const result = net.run(convertToBinary(testInput));
+            
+            // 結果を表示
+            document.getElementById('result').value = binaryToText(result);
+        });
+
+        // コピー機能の実装
+        document.getElementById('copy-btn').addEventListener('click', function() {
+            const resultArea = document.getElementById('result');
+            resultArea.select();
+            document.execCommand('copy');
+            alert('結果をコピーしました！');
+        });
+
+        // テキストをバイナリに変換する関数
+        function convertToBinary(text) {
+            return text.split('').map(char => char.charCodeAt(0) / 255);
+        }
+
+        // バイナリをテキストに変換する関数
+        function binaryToText(binaryArray) {
+            return binaryArray.map(value => String.fromCharCode(Math.round(value * 255))).join('');
+        }
+    </script>
+</body>
+</html>
