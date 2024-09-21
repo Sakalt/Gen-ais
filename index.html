@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ハイドロAI</title>
-    <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.24/dist/browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/brain.js"></script>
     <style>
         #error { color: red; }
     </style>
 </head>
 <body>
     <h1>ハイドロAI</h1>
-    <textarea id="input" placeholder="メッセージを入力"></textarea>
+    <textarea id="input" placeholder="メッセージを入力" rows="4" cols="50"></textarea>
     <button id="run">送信</button>
 
     <h2>カスタムデータの追加</h2>
-    <textarea id="customInput" placeholder="カスタムデータを入力"></textarea>
+    <textarea id="customInput" placeholder="カスタムデータを入力" rows="4" cols="50"></textarea>
     <button id="addCustom">カスタムデータを追加</button>
 
     <h2>出力:</h2>
@@ -24,7 +24,7 @@
     <div id="error"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             let trainingData = [];
             const net = new brain.recurrent.LSTM();
 
@@ -38,6 +38,7 @@
                 })
                 .then(data => {
                     trainingData = data.conversations;
+                    alert('トレーニングデータが読み込まれました。');
                     initializeModel(trainingData);
                 })
                 .catch(err => {
@@ -48,6 +49,7 @@
                 net.train(conversations.map(item => ({
                     input: item.input.join(' '), // 配列の入力を結合
                     output: item.output,
+                    tags: item.tags
                 })), {
                     iterations: 2000,
                     log: true,
@@ -58,10 +60,12 @@
 
             // 応答生成
             const generateResponse = async (input) => {
-                if (input.includes("東京の天気は？")) {
+                // 天気データの取得
+                if (input.includes("東京の天気は？") || input.includes("東京の天気を教えて")) {
                     const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
                     return `東京の天気: ${await response.text()}`;
                 }
+
                 const response = net.run(input);
                 return response || "申し訳ありませんが、その質問にはお答えできません。";
             };
@@ -69,6 +73,11 @@
             // ボタンクリック時の処理
             document.getElementById('run').addEventListener('click', async () => {
                 const userInput = document.getElementById('input').value;
+                if (userInput.trim() === "") {
+                    alert("メッセージを入力してください。");
+                    return;
+                }
+
                 const response = await generateResponse(userInput);
                 document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
             });
