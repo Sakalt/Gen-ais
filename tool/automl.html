@@ -18,6 +18,9 @@
         button {
             cursor: pointer;
         }
+        #result {
+            height: 150px; /* 出力エリアの高さを変更 */
+        }
     </style>
 </head>
 <body>
@@ -26,11 +29,11 @@
     <h2>トレーニングデータ</h2>
     <p>サンプルとして、日本語の日常会話や質問への応答データを使ってモデルをトレーニングします。</p>
     <form id="training-form">
-        <label for="input">トレーニング用の入力データ (例: 今日はどんな天気？):</label>
-        <input type="text" id="input" placeholder="例: 今日はどんな天気？">
+        <label for="input">トレーニング用の入力データ (コンマ区切りで複数):</label>
+        <input type="text" id="input" placeholder="例: 今日はどんな天気？,こんにちは">
 
-        <label for="output">期待する出力データ (例: 晴れです):</label>
-        <input type="text" id="output" placeholder="例: 晴れです">
+        <label for="output">期待する出力データ (コンマ区切りで複数):</label>
+        <input type="text" id="output" placeholder="例: 晴れです,こんにちは！">
 
         <button type="submit">トレーニング</button>
         <button type="button" id="load-samples">サンプルデータを読み込む</button>
@@ -78,21 +81,25 @@
         document.getElementById('training-form').addEventListener('submit', function(event) {
             event.preventDefault();
             
-            const input = document.getElementById('input').value;
-            const output = document.getElementById('output').value;
+            const inputs = document.getElementById('input').value.split(',');
+            const outputs = document.getElementById('output').value.split(',');
 
-            // ネットワークにトレーニングデータを追加
-            net.train([
-                { input: convertToBinary(input), output: convertToBinary(output) }
-            ]);
+            // 各入力に対して対応する出力をトレーニング
+            inputs.forEach((input, index) => {
+                if (outputs[index]) {
+                    net.train([
+                        { input: convertToBinary(input.trim()), output: convertToBinary(outputs[index].trim()) }
+                    ]);
+                }
+            });
 
             alert('モデルをトレーニングしました！');
         });
 
         // サンプルデータを読み込むボタンがクリックされたときの処理
         document.getElementById('load-samples').addEventListener('click', function() {
-            document.getElementById('input').value = "こんにちは";
-            document.getElementById('output').value = "こんにちは！";
+            document.getElementById('input').value = "こんにちは,おはよう,今日はどんな天気？";
+            document.getElementById('output').value = "こんにちは！,おはようございます！,晴れです";
         });
 
         // 予測ボタンがクリックされたときの処理
