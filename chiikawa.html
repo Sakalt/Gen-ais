@@ -24,22 +24,20 @@
         ]);
 
         function getResponse() {
-            const input = document.getElementById('input').value;
+            const input = document.getElementById('input').value.toLowerCase(); // 小文字に変換
             let response;
 
             // Neural Networkを使って応答を生成
             const output = net.run(input);
-            if (output > 0.5) {
-                response = output;
+            const outputText = output > 0.5 ? output : "ごめん、わからない。";
+
+            // 計算処理
+            const calcMatch = input.match(/(\d+)\s*\+\s*(\d+)/);
+            if (calcMatch) {
+                const result = eval(calcMatch[0]);
+                response = `${calcMatch[0]}は${result}だよ！`;
             } else {
-                // 計算処理
-                const calcMatch = input.match(/(\d+)\s*\+\s*(\d+)/);
-                if (calcMatch) {
-                    const result = eval(calcMatch[0]);
-                    response = `${calcMatch[0]}は${result}だよ！`;
-                } else {
-                    response = "ごめん、わからない。";
-                }
+                response = outputText;
             }
 
             document.getElementById('output').innerText = response;
