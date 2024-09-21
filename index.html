@@ -20,7 +20,7 @@
 
     <h2>出力:</h2>
     <pre id="output"></pre>
-    
+
     <div id="error"></div>
 
     <script>
@@ -31,11 +31,12 @@
         fetch('data.json')
             .then(response => response.json())
             .then(data => {
-                trainingData = data;
+                trainingData = data.conversations;
+                alert('トレーニングデータが読み込まれました。'); // デバッグ: トレーニングデータが正常に読み込まれたことを通知
                 initializeModel(trainingData);
             })
             .catch(err => {
-                document.getElementById('error').textContent = `エラー: ${err.message}`;
+                alert(`エラー: ${err.message}`); // エラーメッセージをアラートで表示
             });
 
         const initializeModel = (conversations) => {
@@ -47,6 +48,7 @@
                 log: true,
                 logPeriod: 100,
             });
+            alert('モデルのトレーニングが完了しました'); // デバッグ: モデルがトレーニング完了を通知
         };
 
         // 応答生成
@@ -58,9 +60,10 @@
                 }
 
                 const response = net.run(input);
+                alert('AI応答: ' + response); // デバッグ: AIの応答を通知
                 return response || "申し訳ありませんが、その質問にはお答えできません。";
             } catch (error) {
-                document.getElementById('error').textContent = `エラー: ${error.message}`;
+                alert(`エラー: ${error.message}`); // エラーハンドリング
                 return null;
             }
         };
@@ -68,9 +71,12 @@
         // ボタンクリック時の処理
         document.getElementById('run').addEventListener('click', async () => {
             const userInput = document.getElementById('input').value;
+            alert('ユーザー入力: ' + userInput); // デバッグ: ユーザー入力の通知
             const response = await generateResponse(userInput);
             if (response) {
                 document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
+            } else {
+                document.getElementById('error').textContent = "AIからの応答がありません。";
             }
         });
 
@@ -82,7 +88,7 @@
                     iterations: 200,
                     log: false,
                 });
-                alert('カスタムデータを追加しました！');
+                alert('カスタムデータを追加しました！'); // カスタムデータが追加されたことを通知
                 document.getElementById('customInput').value = '';
             }
         });
