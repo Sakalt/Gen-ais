@@ -24,7 +24,7 @@
     <div id="error"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             let trainingData = [];
             const net = new brain.recurrent.LSTM();
 
@@ -38,18 +38,16 @@
                 })
                 .then(data => {
                     trainingData = data.conversations;
-                    alert('トレーニングデータが読み込まれました。');
                     initializeModel(trainingData);
                 })
                 .catch(err => {
-                    document.getElementById('error').textContent = `エラー: ${err.message}`;
+                    alert(`エラー: ${err.message}`);
                 });
 
             const initializeModel = (conversations) => {
                 net.train(conversations.map(item => ({
                     input: item.input.join(' '), // 配列の入力を結合
                     output: item.output,
-                    tags: item.tags
                 })), {
                     iterations: 2000,
                     log: true,
@@ -60,30 +58,19 @@
 
             // 応答生成
             const generateResponse = async (input) => {
-                try {
-                    // 天気データの取得
-                    if (input.includes("東京の天気は？") || input.includes("東京の天気を教えて")) {
-                        const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
-                        return `東京の天気: ${await response.text()}`;
-                    }
-
-                    const response = net.run(input);
-                    return response || "申し訳ありませんが、その質問にはお答えできません。";
-                } catch (error) {
-                    document.getElementById('error').textContent = `エラー: ${error.message}`;
-                    return null;
+                if (input.includes("東京の天気は？")) {
+                    const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
+                    return `東京の天気: ${await response.text()}`;
                 }
+                const response = net.run(input);
+                return response || "申し訳ありませんが、その質問にはお答えできません。";
             };
 
             // ボタンクリック時の処理
             document.getElementById('run').addEventListener('click', async () => {
                 const userInput = document.getElementById('input').value;
                 const response = await generateResponse(userInput);
-                if (response) {
-                    document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
-                } else {
-                    document.getElementById('error').textContent = "AIからの応答がありません。";
-                }
+                document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
             });
 
             // カスタムデータを追加
