@@ -30,7 +30,12 @@
 
             // JSONデータの読み込み
             fetch('data.json')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTPエラー: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     trainingData = data.conversations;
                     alert('トレーニングデータが読み込まれました。');
@@ -61,7 +66,6 @@
                     }
 
                     const response = net.run(input);
-                    alert('AI応答: ' + response);
                     return response || "申し訳ありませんが、その質問にはお答えできません。";
                 } catch (error) {
                     alert(`エラー: ${error.message}`);
