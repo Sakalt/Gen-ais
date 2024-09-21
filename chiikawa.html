@@ -27,14 +27,19 @@
             const input = document.getElementById('input').value;
             let response;
 
-            // 計算処理
-            const calcMatch = input.match(/(\d+)\s*\+\s*(\d+)/);
-            if (calcMatch) {
-                const result = eval(calcMatch[0]);
-                response = `${calcMatch[0]}は${result}だよ！`;
+            // Neural Networkを使って応答を生成
+            const output = net.run(input);
+            if (output > 0.5) {
+                response = output;
             } else {
-                const output = net.run(input);
-                response = output > 0.5 ? "ちいかわのセリフだよ！" : "ごめん、わからない。";
+                // 計算処理
+                const calcMatch = input.match(/(\d+)\s*\+\s*(\d+)/);
+                if (calcMatch) {
+                    const result = eval(calcMatch[0]);
+                    response = `${calcMatch[0]}は${result}だよ！`;
+                } else {
+                    response = "ごめん、わからない。";
+                }
             }
 
             document.getElementById('output').innerText = response;
