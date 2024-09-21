@@ -24,73 +24,75 @@
     <div id="error"></div>
 
     <script>
-        let trainingData = [];
-        const net = new brain.recurrent.LSTM();
+        document.addEventListener('DOMContentLoaded', function() {
+            let trainingData = [];
+            const net = new brain.recurrent.LSTM();
 
-        // JSONデータの読み込み
-        fetch('data.json')
-            .then(response => response.json())
-            .then(data => {
-                trainingData = data.conversations;
-                alert('トレーニングデータが読み込まれました。'); // デバッグ: トレーニングデータが正常に読み込まれたことを通知
-                initializeModel(trainingData);
-            })
-            .catch(err => {
-                alert(`エラー: ${err.message}`); // エラーメッセージをアラートで表示
-            });
-
-        const initializeModel = (conversations) => {
-            net.train(conversations.map(item => ({
-                input: item.input,
-                output: item.output
-            })), {
-                iterations: 2000,
-                log: true,
-                logPeriod: 100,
-            });
-            alert('モデルのトレーニングが完了しました'); // デバッグ: モデルがトレーニング完了を通知
-        };
-
-        // 応答生成
-        const generateResponse = async (input) => {
-            try {
-                if (input.includes("東京の天気は？")) {
-                    const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
-                    return `東京の天気: ${await response.text()}`;
-                }
-
-                const response = net.run(input);
-                alert('AI応答: ' + response); // デバッグ: AIの応答を通知
-                return response || "申し訳ありませんが、その質問にはお答えできません。";
-            } catch (error) {
-                alert(`エラー: ${error.message}`); // エラーハンドリング
-                return null;
-            }
-        };
-
-        // ボタンクリック時の処理
-        document.getElementById('run').addEventListener('click', async () => {
-            const userInput = document.getElementById('input').value;
-            alert('ユーザー入力: ' + userInput); // デバッグ: ユーザー入力の通知
-            const response = await generateResponse(userInput);
-            if (response) {
-                document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
-            } else {
-                document.getElementById('error').textContent = "AIからの応答がありません。";
-            }
-        });
-
-        // カスタムデータを追加
-        document.getElementById('addCustom').addEventListener('click', () => {
-            const customInput = document.getElementById('customInput').value;
-            if (customInput) {
-                net.train([{ input: customInput, output: customInput }], {
-                    iterations: 200,
-                    log: false,
+            // JSONデータの読み込み
+            fetch('data.json')
+                .then(response => response.json())
+                .then(data => {
+                    trainingData = data.conversations;
+                    alert('トレーニングデータが読み込まれました。');
+                    initializeModel(trainingData);
+                })
+                .catch(err => {
+                    alert(`エラー: ${err.message}`); 
                 });
-                alert('カスタムデータを追加しました！'); // カスタムデータが追加されたことを通知
-                document.getElementById('customInput').value = '';
-            }
+
+            const initializeModel = (conversations) => {
+                net.train(conversations.map(item => ({
+                    input: item.input,
+                    output: item.output
+                })), {
+                    iterations: 2000,
+                    log: true,
+                    logPeriod: 100,
+                });
+                alert('モデルのトレーニングが完了しました');
+            };
+
+            // 応答生成
+            const generateResponse = async (input) => {
+                try {
+                    if (input.includes("東京の天気は？")) {
+                        const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
+                        return `東京の天気: ${await response.text()}`;
+                    }
+
+                    const response = net.run(input);
+                    alert('AI応答: ' + response);
+                    return response || "申し訳ありませんが、その質問にはお答えできません。";
+                } catch (error) {
+                    alert(`エラー: ${error.message}`);
+                    return null;
+                }
+            };
+
+            // ボタンクリック時の処理
+            document.getElementById('run').addEventListener('click', async () => {
+                const userInput = document.getElementById('input').value;
+                alert('ユーザー入力: ' + userInput); 
+                const response = await generateResponse(userInput);
+                if (response) {
+                    document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
+                } else {
+                    document.getElementById('error').textContent = "AIからの応答がありません。";
+                }
+            });
+
+            // カスタムデータを追加
+            document.getElementById('addCustom').addEventListener('click', () => {
+                const customInput = document.getElementById('customInput').value;
+                if (customInput) {
+                    net.train([{ input: customInput, output: customInput }], {
+                        iterations: 200,
+                        log: false,
+                    });
+                    alert('カスタムデータを追加しました！');
+                    document.getElementById('customInput').value = '';
+                }
+            });
         });
     </script>
 </body>
