@@ -8,6 +8,8 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            display: flex;
+            flex-direction: column;
         }
         label, input, button, textarea {
             margin: 10px 0;
@@ -19,7 +21,12 @@
             cursor: pointer;
         }
         #result {
-            height: 150px; /* 出力エリアの高さを変更 */
+            height: 300px; /* 出力エリアの高さを300pxに設定 */
+            float: right; /* 右配置 */
+            width: 300px; /* 幅を設定 */
+        }
+        #training-data-display {
+            height: 100px; /* トレーニングデータ表示エリアの高さ */
         }
     </style>
 </head>
@@ -29,11 +36,8 @@
     <h2>トレーニングデータ</h2>
     <p>サンプルとして、日本語の日常会話や質問への応答データを使ってモデルをトレーニングします。</p>
     <form id="training-form">
-        <label for="input">トレーニング用の入力データ (コンマ区切りで複数):</label>
-        <input type="text" id="input" placeholder="例: 今日はどんな天気？,こんにちは">
-
-        <label for="output">期待する出力データ (コンマ区切りで複数):</label>
-        <input type="text" id="output" placeholder="例: 晴れです,こんにちは！">
+        <label for="input">トレーニング用の入力データ (例: 今日はどんな天気？, 晴れです):</label>
+        <input type="text" id="input" placeholder="例: 今日はどんな天気？, 晴れです">
 
         <button type="submit">トレーニング</button>
         <button type="button" id="load-samples">サンプルデータを読み込む</button>
@@ -45,16 +49,29 @@
     <button id="test-btn">予測する</button>
 
     <h3>結果:</h3>
-    <textarea id="result" readonly></textarea>
+    <textarea id="result"></textarea>
     <button id="copy-btn">コピー</button>
+
+    <h3>トレーニングデータ:</h3>
+    <textarea id="training-data-display" readonly></textarea>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/brain.js/2.0.0/brain.min.js"></script>
     <script>
         // Brain.js ニューラルネットワークの初期化
         const net = new brain.NeuralNetwork();
+        let trainingData = [];
 
-        // 複雑なサンプルデータ（日本語会話用）
-        const trainingData = [
+        // トレーニングデータをネットワークに追加
+        function trainNetwork() {
+            const formattedData = trainingData.map(item => ({
+                input: convertToBinary(item.input),
+                output: convertToBinary(item.output)
+            }));
+            net.train(formattedData);
+        }
+
+        // 初期のサンプルデータ
+        const initialData = [
             { input: "こんにちは", output: "こんにちは！" },
             { input: "おはよう", output: "おはようございます！" },
             { input: "今日はどんな天気？", output: "晴れです" },
@@ -67,39 +84,34 @@
             { input: "明日の天気は？", output: "明日は雨の予報です" }
         ];
 
-        // トレーニングデータをネットワークに追加
-        function trainNetwork() {
-            const formattedData = trainingData.map(item => ({
-                input: convertToBinary(item.input),
-                output: convertToBinary(item.output)
-            }));
-            net.train(formattedData);
-        }
+        // 初期データをトレーニングデータに追加
+        trainingData = initialData;
         trainNetwork();
+        updateTrainingDataDisplay();
 
         // フォームのトレーニングデータを追加
         document.getElementById('training-form').addEventListener('submit', function(event) {
             event.preventDefault();
             
-            const inputs = document.getElementById('input').value.split(',');
-            const outputs = document.getElementById('output').value.split(',');
+            const inputOutput = document.getElementById('input').value.split(',');
+            if (inputOutput.length === 2) {
+                const input = inputOutput[0].trim();
+                const output = inputOutput[1].trim();
+                
+                // ネットワークにトレーニングデータを追加
+                trainingData.push({ input, output });
+                net.train([{ input: convertToBinary(input), output: convertToBinary(output) }]);
+                updateTrainingDataDisplay();
 
-            // 各入力に対して対応する出力をトレーニング
-            inputs.forEach((input, index) => {
-                if (outputs[index]) {
-                    net.train([
-                        { input: convertToBinary(input.trim()), output: convertToBinary(outputs[index].trim()) }
-                    ]);
-                }
-            });
-
-            alert('モデルをトレーニングしました！');
+                alert('モデルをトレーニングしました！');
+            } else {
+                alert('入力は「入力データ, 出力データ」の形式で入力してください。');
+            }
         });
 
         // サンプルデータを読み込むボタンがクリックされたときの処理
         document.getElementById('load-samples').addEventListener('click', function() {
-            document.getElementById('input').value = "こんにちは,おはよう,今日はどんな天気？";
-            document.getElementById('output').value = "こんにちは！,おはようございます！,晴れです";
+            document.getElementById('input').value = "こんにちは, こんにちは！";
         });
 
         // 予測ボタンがクリックされたときの処理
@@ -118,6 +130,11 @@
             document.execCommand('copy');
             alert('結果をコピーしました！');
         });
+
+        // トレーニングデータをJSON形式で表示
+        function updateTrainingDataDisplay() {
+            document.getElementById('training-data-display').value = JSON.stringify(trainingData, null, 2);
+        }
 
         // テキストをバイナリに変換する関数
         function convertToBinary(text) {
