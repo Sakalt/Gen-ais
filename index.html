@@ -28,7 +28,8 @@
             .then(data => {
                 trainingData = data;
                 initializeModel(trainingData);
-            });
+            })
+            .catch(error => console.error('JSONデータの読み込みエラー:', error));
 
         const initializeModel = (conversations) => {
             net.train(conversations.map(item => ({
@@ -44,8 +45,13 @@
         // 応答生成
         const generateResponse = async (input) => {
             if (input.includes("東京の天気は？")) {
-                const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
-                return `東京の天気: ${await response.text()}`;
+                try {
+                    const response = await fetch('https://wttr.in/Tokyo?format=%C+%t');
+                    if (!response.ok) throw new Error('天気情報の取得に失敗しました。');
+                    return `東京の天気: ${await response.text()}`;
+                } catch (error) {
+                    return `エラー: ${error.message}`;
+                }
             }
 
             const response = net.run(input);
