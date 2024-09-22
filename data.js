@@ -1,4 +1,5 @@
-{
+// data.js
+const conversationData = {
     "conversations": [
         {
             "input": ["こんにちは", "やあ"],
@@ -37,4 +38,4 @@
             "tags": ["天気"]
         }
     ]
-}
+};
