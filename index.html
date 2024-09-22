@@ -23,14 +23,37 @@
         document.addEventListener('DOMContentLoaded', function() {
             const net = new brain.recurrent.LSTM();
 
+            // トレーニングデータの初期値（fetchが失敗した場合に使用）
+            let trainingData = [
+                {
+                    input: "こんにちは",
+                    output: "こんにちは！今日はどうですか？"
+                },
+                {
+                    input: "元気ですか？",
+                    output: "はい、元気です！あなたはどうですか？"
+                },
+                {
+                    input: "8 * 8 は？",
+                    output: "答えは 64 です。"
+                }
+            ];
+
             // JSONデータの読み込み
             fetch('/data.json')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('JSONデータの読み込みに失敗しました。');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    initializeModel(data.conversations);
+                    trainingData = data.conversations;  // 外部JSONデータをセット
+                    initializeModel(trainingData);
                 })
                 .catch(err => {
                     alert(`エラー: ${err.message}`);
+                    initializeModel(trainingData);  // エラー時には初期値のデータを使ってトレーニング
                 });
 
             const initializeModel = (conversations) => {
@@ -74,17 +97,6 @@
                     }
 
                     return `答えは ${result} です。`;
-                }
-
-                // 日付・時間応答機能
-                if (input.includes("時間") || input.includes("今何時")) {
-                    const now = new Date();
-                    return `現在の時刻は ${now.getHours()}時${now.getMinutes()}分です。`;
-                }
-
-                if (input.includes("今日") || input.includes("日付")) {
-                    const now = new Date();
-                    return `今日は ${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日です。`;
                 }
 
                 // 通常のAI応答
