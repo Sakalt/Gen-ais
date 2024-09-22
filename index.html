@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ハイドロAI</title>
-    <script src="https://cdn.jsdelivr.net/npm/brain.js"></script>
-    <script src="data.js"></script> <!-- ここでdata.jsを読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.24/dist/browser.min.js"></script>
+    <script src="data.js"></script> <!-- data.jsを読み込む -->
     <style>
         #error { color: red; }
     </style>
@@ -29,12 +29,11 @@
     <button id="getWeather">天気を取得</button>
 
     <div id="weatherResult"></div>
-
     <div id="error"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const net = new brain.recurrent.LSTM();
+            const net = new brain.RecurrentLSTM(); // LSTMネットワークを作成
             
             // 初期トレーニングデータの設定
             let trainingData = conversationData.conversations.map(item => ({
