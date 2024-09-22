@@ -14,10 +14,6 @@
     <textarea id="input" placeholder="メッセージを入力" rows="4" cols="50"></textarea>
     <button id="run">送信</button>
 
-    <h2>カスタムデータの追加</h2>
-    <textarea id="customInput" placeholder="カスタムデータを入力" rows="4" cols="50"></textarea>
-    <button id="addCustom">カスタムデータを追加</button>
-
     <h2>出力:</h2>
     <pre id="output"></pre>
 
@@ -49,22 +45,51 @@
             };
 
             // 応答生成
-            const generateResponse = async (input) => {
-                if (input.includes("天気") || input.includes("東京の天気")) {
-                    return await fetchWeather();
+            const generateResponse = (input) => {
+                // 四則演算のチェック (加算、減算、乗算、除算)
+                const calculationMatch = input.match(/(\d+)\s*([\+\-\*\/×÷])\s*(\d+)/);
+                if (calculationMatch) {
+                    const num1 = parseFloat(calculationMatch[1]);
+                    const operator = calculationMatch[2];
+                    const num2 = parseFloat(calculationMatch[3]);
+                    let result;
+
+                    switch (operator) {
+                        case '+':
+                            result = num1 + num2;
+                            break;
+                        case '-':
+                            result = num1 - num2;
+                            break;
+                        case '*':
+                        case '×':
+                            result = num1 * num2;
+                            break;
+                        case '/':
+                        case '÷':
+                            result = num1 / num2;
+                            break;
+                        default:
+                            return "計算式が間違っています。";
+                    }
+
+                    return `答えは ${result} です。`;
                 }
+
+                // 日付・時間応答機能
+                if (input.includes("時間") || input.includes("今何時")) {
+                    const now = new Date();
+                    return `現在の時刻は ${now.getHours()}時${now.getMinutes()}分です。`;
+                }
+
+                if (input.includes("今日") || input.includes("日付")) {
+                    const now = new Date();
+                    return `今日は ${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日です。`;
+                }
+
+                // 通常のAI応答
                 const response = net.run(input);
                 return response || "申し訳ありませんが、その質問にはお答えできません。";
-            };
-
-            const fetchWeather = async () => {
-                try {
-                    const response = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://wttr.in/Tokyo?format=%C+%t'));
-                    const data = await response.json();
-                    return `東京の天気: ${data.contents}`;
-                } catch (error) {
-                    return "天気情報の取得に失敗しました。";
-                }
             };
 
             // ボタンクリック時の処理
@@ -75,24 +100,8 @@
                     return;
                 }
 
-                generateResponse(userInput).then(response => {
-                    document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
-                });
-            });
-
-            // カスタムデータを追加
-            document.getElementById('addCustom').addEventListener('click', () => {
-                const customInput = document.getElementById('customInput').value.trim();
-                if (customInput) {
-                    net.train([{ input: customInput, output: customInput }], {
-                        iterations: 200,
-                        log: false,
-                    });
-                    alert('カスタムデータを追加しました！');
-                    document.getElementById('customInput').value = '';
-                } else {
-                    alert("カスタムデータを入力してください。");
-                }
+                const response = generateResponse(userInput);
+                document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
             });
         });
     </script>
