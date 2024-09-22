@@ -39,22 +39,31 @@
                 }
             ];
 
-            // JSONデータの読み込み
-            fetch('data.json')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('JSONデータの読み込みに失敗しました。');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    trainingData = data.conversations;  // 外部JSONデータをセット
-                    initializeModel(trainingData);
-                })
-                .catch(err => {
-                    alert(`エラー: ${err.message}`);
-                    initializeModel(trainingData);  // エラー時には初期値のデータを使ってトレーニング
+            // タイムアウト付きでfetchを実行する関数
+            const fetchWithTimeout = (url, options = {}, timeout = 5000) => {
+                return new Promise((resolve, reject) => {
+                    const timer = setTimeout(() => reject(new Error("リクエストがタイムアウトしました")), timeout);
+                    fetch(url, options)
+                        .then(response => {
+                            clearTimeout(timer);
+                            if (!response.ok) {
+                                throw new Error('データの読み込みに失敗しました');
+                            }
+                            resolve(response.json());
+                        })
+                        .catch(reject);
                 });
+            };
+
+            const loadData = async () => {
+                try {
+                    const data = await fetchWithTimeout('/data.json');
+                    trainingData = data.conversations;  // 外部JSONデータをセット
+                } catch (error) {
+                    alert(`エラー: ${error.message}`);
+                }
+                initializeModel(trainingData);  // エラー時には初期値のデータを使ってトレーニング
+            };
 
             const initializeModel = (conversations) => {
                 net.train(conversations.map(item => ({
@@ -115,6 +124,9 @@
                 const response = generateResponse(userInput);
                 document.getElementById('output').textContent = `ユーザー: ${userInput}\nAI: ${response}`;
             });
+
+            // データ読み込み開始
+            loadData();
         });
     </script>
 </body>
