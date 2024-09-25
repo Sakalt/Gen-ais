@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GPT-2 テキスト生成器</title>
+  <title>GPT-2 日本語テキスト生成器</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -32,7 +32,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>GPT-2 テキスト生成器</h1>
+    <h1>GPT-2 日本語テキスト生成器</h1>
     <textarea id="inputText" class="input-field" rows="4" placeholder="ここにテキストを入力してください..."></textarea>
     <button id="generateButton">テキスト生成</button>
     <div id="output" class="output"></div>
@@ -57,7 +57,7 @@
         }
 
         try {
-            // GPT-2モデルの読み込み
+            // rinna/japanese-gpt2-mediumモデルの読み込み
             const generator = await window.transformers.pipeline('text-generation', 'rinna/japanese-gpt2-medium');
 
             // テキスト生成
